@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subir Excel a MySQL</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+    }
+
+    .container {
+      background: #ffffff1a;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      backdrop-filter: blur(10px);
+      width: 90%;
+      max-width: 500px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    label[for="excelFile"] {
+      display: inline-block;
+      padding: 12px 25px;
+      background-color: #ffffff;
+      color: #2575fc;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    label[for="excelFile"]:hover {
+      background-color: #2575fc;
+      color: #fff;
+      transform: scale(1.05);
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #00c9a7;
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #00b49f;
+      transform: translateY(-2px);
+    }
+
+    .message {
+      margin-top: 20px;
+      font-size: 16px;
+      font-weight: bold;
+      padding: 10px;
+      border-radius: 10px;
+      display: none;
+    }
+
+    .success {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    .error {
+      background-color: #f44336;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Sube tu archivo Excel</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+      <input type="file" id="excelFile" name="excelFile" accept=".xlsx" />
+      <label for="excelFile">Seleccionar archivo Excel</label>
+      <br />
+      <button type="submit">Subir</button>
+    </form>
+    <div class="message" id="messageBox"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById("uploadForm");
+    const fileInput = document.getElementById("excelFile");
+    const messageBox = document.getElementById("messageBox");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const file = fileInput.files[0];
+      if (!file) {
+        showMessage("Por favor selecciona un archivo Excel (.xlsx)", "error");
+        return;
+      }
+
+      if (!file.name.endsWith(".xlsx")) {
+        showMessage("El archivo debe tener extensión .xlsx (Excel 2007 o superior)", "error");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("excelFile", file);
+
+      try {
+        const res = await fetch("/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const text = await res.text();
+        if (res.ok) {
+          showMessage("¡Archivo subido y guardado en la base de datos con éxito!", "success");
+          form.reset();
+        } else {
+          showMessage("Error: " + text, "error");
+        }
+      } catch (err) {
+        showMessage("Error en la conexión con el servidor", "error");
+      }
+    });
+
+    function showMessage(text, type) {
+      messageBox.textContent = text;
+      messageBox.className = `message ${type}`;
+      messageBox.style.display = "block";
+    }
+  </script>
+</body>
+</html>
